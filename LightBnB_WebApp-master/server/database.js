@@ -61,10 +61,12 @@ exports.getUserWithId = getUserWithId;
  * @return {Promise<{}>} A promise to the user.
  */
 const addUser = function (user) {
-  return pool
-    .query(`INSERT INTO users (
-  name, email, password) 
-  VALUES ($1, $2, $3);`, [user.name, user.email, user.password])
+  const queryString = `INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING *;`;
+  const queryParams = [user.name, user.email, user.password];
+
+  return query(queryString, queryParams)
+  .then ((result) => result.rows[0])
+  .catch((err) => console.log(err.message))
 }
 exports.addUser = addUser;
 
@@ -180,10 +182,27 @@ exports.getAllProperties = getAllProperties;
  */
 
 const addProperty = function (property) {
-  return pool
-    .query(`INSERT INTO properties (
-      title, description, owner_id, cover_photo_url, thumbnail_photo_url, cost_per_night, parking_spaces, number_of_bathrooms, number_of_bedrooms, active, province, city, country, street, post_code) 
-      VALUES ($1, $2, $3,$4, $5, $6, $7,$8,$9,$10,$11,$12,$13,$14,$15);`, [property.title, property.description, property.owner_id, property.cover_photo_url,property.thumbnail_photo_url,property.cost_per_night, property.parking_spaces, property.number_of_bathrooms,property.number_of_bathrooms, 'true', property.province, property.city, property.country, property.street, property.post_code])
+  const queryString = `INSERT INTO properties (owner_id, title, description, thumbnail_photo_url, cover_photo_url, cost_per_night, street, city, province, post_code, country, parking_spaces, number_of_bathrooms, number_of_bedrooms) 
+  VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) RETURNING *;`
+  const queryParams = [
+    property.owner_id, 
+    property.title, 
+    property.description, 
+    property.thumbnail_photo_url, 
+    property.cover_photo_url,
+    property.cost_per_night, 
+    property.street, 
+    property.city,
+    property.province,
+    property.post_code,
+    property.country,
+    property.parking_spaces,
+    property.number_of_bathrooms,
+    property.number_of_bedrooms,]
+
+  return query(queryString, queryParams)
+  .then(result => result.rows[0])
+  .catch(error => error.message);
 
 }
 exports.addProperty = addProperty;
